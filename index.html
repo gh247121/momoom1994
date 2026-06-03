@@ -13,6 +13,9 @@
 <title>نظام الدفاع المدني – المنطقة الصناعية الجنوبية</title>
 
 <!-- Fonts - Optimized -->
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -2797,7 +2800,7 @@ body[data-accent="teal"] {
 <!-- مكتبات ERG -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script>
+<script type="module">
  window.ergData   = [];
   window.ergGuides = {};
 function loadERGGuidesFromBatch(data) {
@@ -5369,33 +5372,68 @@ const EvacDB = {
   }
 };
 
+// ════════════════════════════════════════════
+// DATA LAYER — Firebase Firestore
+// ════════════════════════════════════════════
 
-// ════════════════════════════════════════════
-// DATA LAYER — localStorage
-// ════════════════════════════════════════════
+// Firebase يُحمّل عبر CDN في <head>
+const firebaseConfig = {
+  apiKey: "AIzaSyA7J8uDUOng3MAqgBMRxb7rPf__6SBmpqc",
+  authDomain: "company-48833.firebaseapp.com",
+  projectId: "company-48833",
+  storageBucket: "company-48833.firebasestorage.app",
+  messagingSenderId: "216354872740",
+  appId: "1:216354872740:web:970c42b4e89dda838e3531"
+};
+
+const _fbApp = firebase.initializeApp(firebaseConfig);
+const _db = firebase.firestore();
+
+// كاش محلي لتسريع القراءة
+const _cache = {};
+
 const DB = {
   get(key){
+    // إرجاع من الكاش المحلي فوراً إن وُجد
+    if(_cache[key] !== undefined) return _cache[key];
+    // fallback على localStorage ريثما يتم التحميل
     try{
       const raw = localStorage.getItem('cd_'+key);
-      if(!raw) return [];
-      return JSON.parse(raw)||[];
-    }catch(e){ console.warn('DB.get error:',key,e); return []; }
+      return raw ? JSON.parse(raw)||[] : [];
+    }catch(e){ return []; }
   },
-set(key,val){
+
+  set(key, val){
+    // حفظ في الكاش المحلي فوراً
+    _cache[key] = val;
+    // حفظ في localStorage كـ fallback
+    try{ localStorage.setItem('cd_'+key, JSON.stringify(val)); }catch(e){}
+    // حفظ في Firestore بشكل غير متزامن
+    _db.collection('ergData').doc(key).set({ data: val })
+      .catch(e => console.warn('Firebase set error:', key, e));
+  },
+
+  // تحميل كل البيانات من Firestore عند بدء التطبيق
+  async loadAll(){
     try{
-      const str = JSON.stringify(val);
-      localStorage.setItem('cd_'+key, str);
+      const snap = await _db.collection('ergData').get();
+      snap.forEach(d => {
+        const key = d.id;
+        const val = d.data().data;
+        _cache[key] = val;
+        try{ localStorage.setItem('cd_'+key, JSON.stringify(val)); }catch(e){}
+      });
+      console.log('✅ Firebase: تم تحميل البيانات');
     }catch(e){
-      if(e.name==='QuotaExceededError'){
-        if(typeof showToast==='function') showToast('⚠️ مساحة التخزين ممتلئة','error');
-      }else{ console.warn('DB.set error:',key,e); }
+      console.warn('⚠️ Firebase loadAll error:', e);
     }
   },
+
   genId(){ return Date.now().toString(36)+Math.random().toString(36).substr(2,4); },
+
   _checkQuota(){
     try{
       let total=0;
-      // احسب فقط بيانات التطبيق cd_ وتجاهل كاش ERG الضخم
       for(let k in localStorage){
         if(localStorage.hasOwnProperty(k) && k.startsWith('cd_'))
           total+=((localStorage[k]||'').length+(k||'').length)*2;
@@ -5406,14 +5444,21 @@ set(key,val){
       if(el)  el.style.width      = Math.min(pct,100)+'%';
       if(el)  el.style.background = pct>80?'#e05c5c':pct>60?'#e8b84b':'#2ecc71';
       if(lbl) lbl.textContent     = pct+'%';
-      if(pct>90) showToast('🔴 تحذير: مساحة التخزين '+pct+'% ممتلئة','error');
     }catch(e){}
   },
-  clear(key){ localStorage.removeItem('cd_'+key); },
+
+  clear(key){
+    delete _cache[key];
+    localStorage.removeItem('cd_'+key);
+    _db.collection('ergData').doc(key).delete().catch(e=>{});
+  },
+
   clearAll(){
+    Object.keys(_cache).forEach(k => delete _cache[k]);
     const keys=Object.keys(localStorage).filter(k=>k.startsWith('cd_'));
     keys.forEach(k=>localStorage.removeItem(k));
   },
+
   size(){
     let total=0;
     for(let k in localStorage){
@@ -5424,6 +5469,8 @@ set(key,val){
   }
 };
 
+// تحميل البيانات من Firebase عند بدء الصفحة
+DB.loadAll();
 
 // ══ بيانات الغازات الخطرة ══
 const GASES_DATA = [

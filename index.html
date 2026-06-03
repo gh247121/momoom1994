@@ -2800,7 +2800,7 @@ body[data-accent="teal"] {
 <!-- مكتبات ERG -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script type="module">
+<script>
  window.ergData   = [];
   window.ergGuides = {};
 function loadERGGuidesFromBatch(data) {
@@ -5386,8 +5386,14 @@ const firebaseConfig = {
   appId: "1:216354872740:web:970c42b4e89dda838e3531"
 };
 
-const _fbApp = firebase.initializeApp(firebaseConfig);
-const _db = firebase.firestore();
+let _fbApp, _db, _firebaseReady = false;
+try {
+  _fbApp = firebase.initializeApp(firebaseConfig);
+  _db = firebase.firestore();
+  _firebaseReady = true;
+} catch(e) {
+  console.warn('Firebase init error:', e);
+}
 
 // كاش محلي لتسريع القراءة
 const _cache = {};
@@ -5409,12 +5415,15 @@ const DB = {
     // حفظ في localStorage كـ fallback
     try{ localStorage.setItem('cd_'+key, JSON.stringify(val)); }catch(e){}
     // حفظ في Firestore بشكل غير متزامن
-    _db.collection('ergData').doc(key).set({ data: val })
-      .catch(e => console.warn('Firebase set error:', key, e));
+    if(_firebaseReady && _db){
+      _db.collection('ergData').doc(key).set({ data: val })
+        .catch(e => console.warn('Firebase set error:', key, e));
+    }
   },
 
   // تحميل كل البيانات من Firestore عند بدء التطبيق
   async loadAll(){
+    if(!_firebaseReady || !_db){ console.warn('Firebase not ready'); return; }
     try{
       const snap = await _db.collection('ergData').get();
       snap.forEach(d => {
@@ -5450,7 +5459,7 @@ const DB = {
   clear(key){
     delete _cache[key];
     localStorage.removeItem('cd_'+key);
-    _db.collection('ergData').doc(key).delete().catch(e=>{});
+    if(_firebaseReady && _db) _db.collection('ergData').doc(key).delete().catch(e=>{});
   },
 
   clearAll(){

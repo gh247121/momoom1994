@@ -5433,8 +5433,9 @@ const DB = {
     // fallback على localStorage ريثما يتم التحميل
     try{
       const raw = localStorage.getItem('cd_'+key);
-      return raw ? JSON.parse(raw)||[] : [];
-    }catch(e){ return []; }
+      if(!raw) return [];
+      return JSON.parse(raw)||[];
+    }catch(e){ console.warn('DB.get error:',key,e); return []; }
   },
 
   set(key, val){
@@ -5481,6 +5482,7 @@ const DB = {
       if(el)  el.style.width      = Math.min(pct,100)+'%';
       if(el)  el.style.background = pct>80?'#e05c5c':pct>60?'#e8b84b':'#2ecc71';
       if(lbl) lbl.textContent     = pct+'%';
+      if(pct>90) showToast('🔴 تحذير: مساحة التخزين '+pct+'% ممتلئة','error');
     }catch(e){}
   },
 
@@ -7810,6 +7812,8 @@ workHours:document.getElementById('co_workHours')?.value||'',
 center:document.getElementById('co_center')?.value||'',
 route:document.getElementById('co_route')?.value||'',
 coordinates:document.getElementById('co_coordinates')?.value||'',
+lat:(function(){ var v=document.getElementById('co_coordinates')?.value||''; var m=v.match(/([0-9.]+)[^0-9.]+([0-9.]+)/); return m?parseFloat(m[1]):''; })(),
+lng:(function(){ var v=document.getElementById('co_coordinates')?.value||''; var m=v.match(/([0-9.]+)[^0-9.]+([0-9.]+)/); return m?parseFloat(m[2]):''; })(),
 mapUrl:document.getElementById('co_mapUrl')?.value||'',
 buildings:document.getElementById('co_buildings')?.value||0,
 ppe_filter:document.getElementById('co_ppe_filter')?.value||0,
@@ -7867,7 +7871,7 @@ document.getElementById('co_phoneMobile').value=c.phoneMobile||'';
 document.getElementById('co_workHours').value=c.workHours||'';
 document.getElementById('co_center').value=c.center||'';
 document.getElementById('co_route').value=c.route||'';
-document.getElementById('co_coordinates').value=c.coordinates||'';
+document.getElementById('co_coordinates').value=c.coordinates||(c.lat&&c.lng?c.lat+' , '+c.lng:'')||'';
 document.getElementById('co_mapUrl').value=c.mapUrl||'';
 document.getElementById('co_buildings').value=c.buildings||'';
 document.getElementById('co_ppe_filter').value=c.ppe_filter||'';
@@ -7939,14 +7943,15 @@ function viewCompany(id){
 
 <div class="detail-section"><div class="detail-section-title">📍 بيانات الموقع والتواصل</div>
 <div class="detail-grid">
-  ${c.owner?`<div class="detail-item"><label>المالك</label><span>${c.owner}</span></div>`:''}
-  ${c.street?`<div class="detail-item"><label>الشارع</label><span>${c.street}</span></div>`:''}
-  ${c.phoneOffice?`<div class="detail-item"><label>هاتف المكتب</label><span style="direction:ltr;">${c.phoneOffice}</span></div>`:''}
-  ${c.phoneMobile?`<div class="detail-item"><label>هاتف السلامة</label><span style="direction:ltr;">${c.phoneMobile}</span></div>`:''}
-  ${c.workHours?`<div class="detail-item"><label>ساعات الدوام</label><span>${c.workHours}</span></div>`:''}
-  ${c.center?`<div class="detail-item"><label>أقرب مركز مستجيب</label><span>${c.center}</span></div>`:''}
-  ${c.buildings?`<div class="detail-item"><label>عدد المباني</label><span>${c.buildings}</span></div>`:''}
-  ${c.mapUrl?`<div class="detail-item" style="grid-column:1/-1;"><label>خريطة Google Maps</label><a href="${c.mapUrl}" target="_blank" style="color:var(--info);font-size:12px;">🗺️ فتح الخريطة</a></div>`:''}
+  <div class="detail-item"><label>المالك</label><span>${c.owner||'—'}</span></div>
+  <div class="detail-item"><label>الشارع / العنوان</label><span>${c.street||'—'}</span></div>
+  <div class="detail-item"><label>هاتف المكتب</label><span style="direction:ltr;">${c.phoneOffice||'—'}</span></div>
+  <div class="detail-item"><label>هاتف السلامة</label><span style="direction:ltr;">${c.phoneMobile||'—'}</span></div>
+  <div class="detail-item"><label>ساعات الدوام</label><span>${c.workHours||'—'}</span></div>
+  <div class="detail-item"><label>أقرب مركز مستجيب</label><span>${c.center||'—'}</span></div>
+  <div class="detail-item"><label>عدد المباني</label><span>${c.buildings||'—'}</span></div>
+  <div class="detail-item"><label>الإحداثيات</label><span style="direction:ltr;">${c.lat&&c.lng ? c.lat+' , '+c.lng : (c.coordinates||'—')}</span></div>
+  ${c.mapUrl?`<div class="detail-item" style="grid-column:1/-1;"><label>خريطة Google Maps</label><a href="${c.mapUrl}" target="_blank" style="color:var(--info);font-size:12px;">🗺️ فتح الخريطة</a></div>`:`<div class="detail-item" style="grid-column:1/-1;"><label>خريطة Google Maps</label><span>—</span></div>`}
 </div></div>
 ${c.route?`<div class="detail-section"><div class="detail-section-title">🛣️ الطريق من المركز</div><p style="font-size:13px;color:var(--text-secondary);">${c.route}</p></div>`:''}
 

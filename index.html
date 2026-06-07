@@ -977,6 +977,25 @@ body[data-accent="teal"] {
   background: linear-gradient(90deg, rgba(192,57,43,0.35), rgba(232,132,42,0.18), transparent);
 }
 
+
+.nav-emergency-btn {
+  margin: 3px 8px 5px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, rgba(192,57,43,0.22), rgba(232,132,42,0.10));
+  border: 1px solid rgba(192,57,43,0.38);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.nav-emergency-btn:hover {
+  background: linear-gradient(135deg, rgba(192,57,43,0.38), rgba(232,132,42,0.20));
+  border-color: rgba(192,57,43,0.60);
+  transform: translateX(-2px);
+}
+
 .status-dot {
   width: 10px;
   height: 10px;
@@ -3217,6 +3236,15 @@ function loadERGGuidesFiles(input) {
     <div class="nav-item" onclick="showPage('map',this)">
       <span class="nav-icon">🗺️</span><span class="nav-label">خريطة المنطقة</span>
     </div>
+  </div>
+
+  <div class="nav-divider"></div>
+  <div class="nav-section-title" style="color:rgba(232,132,42,0.60);">● الاستجابة للطوارئ</div>
+
+  <div class="nav-item" onclick="showPage('erg',this)" id="nav-erg">
+    <span class="nav-icon">📘</span>
+    <span class="nav-label">نظام ERG</span>
+    <span class="nav-badge info" id="badge-erg">2024</span>
   </div>
 
   <div class="nav-divider"></div>

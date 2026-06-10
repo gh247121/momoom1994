@@ -2913,9 +2913,27 @@ reader.onload = function(e) {
         try { localStorage.setItem('erg_data_cache', JSON.stringify(window.ergData)); } catch(e){}
 // حفظ في Firebase لمزامنة بين الأجهزة
 if(typeof _db !== 'undefined' && _firebaseReady && _db){
-  _db.collection('ergData').doc('erg_materials').set({ data: window.ergData })
-    .then(function(){ console.log('✅ ERG محفوظ في Firebase'); })
-    .catch(function(e){ console.warn('⚠️ ERG Firebase save error:', e); });
+  // تقسيم البيانات على chunks بسبب حد Firestore 1MB لكل document
+  var chunkSize = 100;
+  var chunks = [];
+  for(var i=0; i<window.ergData.length; i+=chunkSize){
+    chunks.push(window.ergData.slice(i, i+chunkSize));
+  }
+  // حذف القديم أولاً
+  _db.collection('ergChunks').get().then(function(snap){
+    var deletes = snap.docs.map(function(d){ return d.ref.delete(); });
+    return Promise.all(deletes);
+  }).then(function(){
+    // حفظ الـ chunks الجديدة
+    var saves = chunks.map(function(chunk, idx){
+      return _db.collection('ergChunks').doc('chunk_'+idx).set({ data: chunk, index: idx });
+    });
+    return Promise.all(saves);
+  }).then(function(){
+    console.log('✅ ERG محفوظ في Firebase: ' + chunks.length + ' أجزاء');
+  }).catch(function(e){
+    console.warn('⚠️ ERG Firebase save error:', e);
+  });
 }
         const el = document.getElementById('erg-status');
         if (el) el.textContent = '✅ محلي + Firebase: ' + window.ergData.length + ' مادة';
@@ -2953,15 +2971,21 @@ if(typeof _db !== 'undefined' && _firebaseReady && _db){
 // ── محاولة تحميل ERG من Firebase مع إعادة المحاولة ──
 function loadERGFromFirebase(){
   if(typeof _db !== 'undefined' && _firebaseReady && _db){
-    _db.collection('ergData').doc('erg_materials').get()
-      .then(function(doc){
-        if(doc.exists && doc.data().data && doc.data().data.length){
-          window.ergData = doc.data().data;
-          window.ergLoaded = true;
-          try{ localStorage.setItem('erg_data_cache', JSON.stringify(window.ergData)); }catch(e){}
-          var el = document.getElementById('erg-status');
-          if(el) el.textContent = '✅ Firebase: ' + window.ergData.length + ' مادة';
-          console.log('✅ ERG من Firebase: ' + window.ergData.length + ' مادة');
+    _db.collection('ergChunks').orderBy('index').get()
+      .then(function(snap){
+        if(!snap.empty){
+          var allData = [];
+          snap.forEach(function(doc){
+            allData = allData.concat(doc.data().data);
+          });
+          if(allData.length > 0){
+            window.ergData = allData;
+            window.ergLoaded = true;
+            try{ localStorage.setItem('erg_data_cache', JSON.stringify(window.ergData)); }catch(e){}
+            var el = document.getElementById('erg-status');
+            if(el) el.textContent = '✅ Firebase: ' + window.ergData.length + ' مادة';
+            console.log('✅ ERG من Firebase: ' + window.ergData.length + ' مادة');
+          }
         }
       })
       .catch(function(e){ console.warn('⚠️ ERG Firebase load error:', e); });

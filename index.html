@@ -2918,7 +2918,7 @@ if(typeof _db !== 'undefined' && _firebaseReady && _db){
     .catch(function(e){ console.warn('⚠️ ERG Firebase save error:', e); });
 }
         const el = document.getElementById('erg-status');
-        if (el) el.textContent = '✅ محلي: ' + window.ergData.length + ' مادة';
+        if (el) el.textContent = '✅ محلي + Firebase: ' + window.ergData.length + ' مادة';
         var modeLabel = importMode === 'replace' ? '🗑️ استبدال' : '🔀 دمج';
         showToast('✅ ERG (' + modeLabel + '): ' + added + ' جديدة، ' + updated + ' محدَّثة — الإجمالي: ' + window.ergData.length + ' مادة', 'success');
       } catch(err) {
@@ -2928,21 +2928,7 @@ if(typeof _db !== 'undefined' && _firebaseReady && _db){
     reader.readAsText(file, 'UTF-8');
   }
 
-  // ── استعادة البيانات من localStorage عند فتح الصفحة ──
-// ── محاولة تحميل ERG من Firebase أولاً ──
-if(typeof _db !== 'undefined' && _firebaseReady && _db){
-  _db.collection('ergData').doc('erg_materials').get()
-    .then(function(doc){
-      if(doc.exists && doc.data().data && doc.data().data.length){
-        window.ergData = doc.data().data;
-        try{ localStorage.setItem('erg_data_cache', JSON.stringify(window.ergData)); }catch(e){}
-        var el = document.getElementById('erg-status-label');
-        if(el) el.textContent = '✅ Firebase: ' + window.ergData.length + ' مادة';
-        console.log('✅ ERG تم تحميله من Firebase: ' + window.ergData.length + ' مادة');
-      }
-    })
-    .catch(function(e){ console.warn('⚠️ ERG Firebase load error:', e); });
-}
+// ── استعادة البيانات من localStorage عند فتح الصفحة ──
 (function restoreERGCache() {
     try {
       const cached = localStorage.getItem('erg_data_cache');
@@ -2963,6 +2949,29 @@ if(typeof _db !== 'undefined' && _firebaseReady && _db){
         el.textContent = '📂 لم يتم تحميل بيانات ERG بعد';
       }
     }
+
+// ── محاولة تحميل ERG من Firebase مع إعادة المحاولة ──
+function loadERGFromFirebase(){
+  if(typeof _db !== 'undefined' && _firebaseReady && _db){
+    _db.collection('ergData').doc('erg_materials').get()
+      .then(function(doc){
+        if(doc.exists && doc.data().data && doc.data().data.length){
+          window.ergData = doc.data().data;
+          window.ergLoaded = true;
+          try{ localStorage.setItem('erg_data_cache', JSON.stringify(window.ergData)); }catch(e){}
+          var el = document.getElementById('erg-status');
+          if(el) el.textContent = '✅ Firebase: ' + window.ergData.length + ' مادة';
+          console.log('✅ ERG من Firebase: ' + window.ergData.length + ' مادة');
+        }
+      })
+      .catch(function(e){ console.warn('⚠️ ERG Firebase load error:', e); });
+  } else {
+    setTimeout(loadERGFromFirebase, 1000);
+  }
+}
+setTimeout(loadERGFromFirebase, 1500);
+
+
 // ══ شاشة التحميل ══
 (function(){
   const loader = document.createElement('div');

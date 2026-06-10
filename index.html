@@ -2911,6 +2911,12 @@ reader.onload = function(e) {
         }
         window.ergLoaded = true;
         try { localStorage.setItem('erg_data_cache', JSON.stringify(window.ergData)); } catch(e){}
+// حفظ في Firebase لمزامنة بين الأجهزة
+if(typeof _db !== 'undefined' && _firebaseReady && _db){
+  _db.collection('ergData').doc('erg_materials').set({ data: window.ergData })
+    .then(function(){ console.log('✅ ERG محفوظ في Firebase'); })
+    .catch(function(e){ console.warn('⚠️ ERG Firebase save error:', e); });
+}
         const el = document.getElementById('erg-status');
         if (el) el.textContent = '✅ محلي: ' + window.ergData.length + ' مادة';
         var modeLabel = importMode === 'replace' ? '🗑️ استبدال' : '🔀 دمج';
@@ -2923,6 +2929,20 @@ reader.onload = function(e) {
   }
 
   // ── استعادة البيانات من localStorage عند فتح الصفحة ──
+// ── محاولة تحميل ERG من Firebase أولاً ──
+if(typeof _db !== 'undefined' && _firebaseReady && _db){
+  _db.collection('ergData').doc('erg_materials').get()
+    .then(function(doc){
+      if(doc.exists && doc.data().data && doc.data().data.length){
+        window.ergData = doc.data().data;
+        try{ localStorage.setItem('erg_data_cache', JSON.stringify(window.ergData)); }catch(e){}
+        var el = document.getElementById('erg-status-label');
+        if(el) el.textContent = '✅ Firebase: ' + window.ergData.length + ' مادة';
+        console.log('✅ ERG تم تحميله من Firebase: ' + window.ergData.length + ' مادة');
+      }
+    })
+    .catch(function(e){ console.warn('⚠️ ERG Firebase load error:', e); });
+}
 (function restoreERGCache() {
     try {
       const cached = localStorage.getItem('erg_data_cache');

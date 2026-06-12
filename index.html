@@ -1906,13 +1906,48 @@ body[data-accent="teal"] {
   }
   
   .header {
-    padding: 0 16px;
+    padding: 0 10px;
+    gap: 6px;
   }
   
   .main {
-    padding: 16px;
+    padding: 12px;
+  }
+
+  #backup-status,
+  #fullscreenBtn,
+  #printMenuWrap,
+  #theme-toggle-btn,
+  .datetime-display,
+  .search-shortcut {
+    display: none !important;
+  }
+
+  .global-search-wrap {
+    max-width: 140px;
+  }
+
+  .global-search-input {
+    width: 120px !important;
+    font-size: 12px;
+    padding: 7px 10px;
+  }
+
+  .page-title {
+    font-size: 14px;
+  }
+
+  .breadcrumb {
+    display: none;
+  }
+
+  .header-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
   }
 }
+
 
 @media (max-width: 480px) {
   .global-search-input {
@@ -2494,8 +2529,10 @@ body[data-accent="teal"] {
   #mobile-bottom-nav {
     display: none !important;
   }
+  #mobile-menu-btn {
+    display: none !important;
+  }
 }
-
 
 
 
@@ -3368,7 +3405,7 @@ function loadERGGuidesFiles(input) {
 <!-- HEADER -->
 <header class="header">
 <button id="mobile-menu-btn" onclick="toggleMobileSidebar()" style="
-  display: none;
+  display: flex;
   width: 40px;
   height: 40px;
   background: rgba(255,255,255,0.05);
@@ -3650,6 +3687,7 @@ function loadERGGuidesFiles(input) {
   <div class="card" style="margin-top:20px;">
     <div class="card-header"><div class="card-title"><span class="icon">📞</span>أرقام الطوارئ الرسمية</div></div>
     <div class="card-body" style="padding:0;">
+      <div class="data-table-wrap">
       <table class="data-table">
         <thead><tr><th>الجهة</th><th>الرقم</th><th>التخصص</th><th>التوفر</th></tr></thead>
         <tbody>
@@ -3657,8 +3695,9 @@ function loadERGGuidesFiles(input) {
           <tr><td>☢️ هيئة الطاقة الذرية</td><td style="direction:ltr;font-weight:700;color:var(--gold-light);">06-5200460</td><td>حوادث إشعاعية</td><td><span class="status-badge ok">24/7</span></td></tr>
           <tr><td>🧪 مركز السموم الوطني</td><td style="direction:ltr;font-weight:700;color:var(--gold-light);">110</td><td>تسمم كيميائي</td><td><span class="status-badge ok">24/7</span></td></tr>
           <tr><td>🌊 البيئة والمياه</td><td style="direction:ltr;font-weight:700;color:#5dade2;">1700</td><td>تسرب كيميائي بيئي</td><td><span class="status-badge ok">24/7</span></td></tr>
-        </tbody>
+</tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>
@@ -3798,10 +3837,12 @@ function loadERGGuidesFiles(input) {
 
   <div class="card">
     <div class="card-body" style="padding:0;">
+      <div class="data-table-wrap">
       <table class="data-table">
         <thead><tr><th>الشركة</th><th>نوع الكشف الدوري</th><th>التاريخ والوقت</th><th>المفتش</th><th>النتيجة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
         <tbody id="inspections-tbody"><tr><td colspan="7" class="table-empty">لا توجد تفتيشات مجدولة</td></tr></tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>
@@ -3833,10 +3874,12 @@ function loadERGGuidesFiles(input) {
     <div class="card">
       <div class="card-header"><div class="card-title"><span class="icon">🏭</span>آخر الشركات المضافة</div></div>
       <div class="card-body" style="padding:0;">
+        <div class="data-table-wrap">
         <table class="data-table">
           <thead><tr><th>الشركة</th><th>النشاط</th><th>الخطر</th><th>الحالة</th></tr></thead>
           <tbody id="dash-companies-table"><tr><td colspan="4" class="table-empty">لا توجد شركات</td></tr></tbody>
         </table>
+        </div>
       </div>
     </div>
   </div> <div class="grid-2" style="margin-bottom:16px;">
@@ -3912,6 +3955,7 @@ function loadERGGuidesFiles(input) {
   <button class="btn-sm primary" onclick="openCustomReportBuilder()" style="margin-right:auto;">✨ تقرير مخصص</button>
 </div>
     <div class="card-body" style="padding:0;">
+      <div class="data-table-wrap">
       <table class="data-table">
         <thead><tr><th>التقرير</th><th>الوصف</th><th>عدد السجلات</th><th>طباعة</th></tr></thead>
         <tbody>
@@ -3922,6 +3966,7 @@ function loadERGGuidesFiles(input) {
 <tr><td>🧪 تقرير الغازات الخطرة</td><td>جدول التراكيز والأعراض للغازات الـ13</td><td>13</td><td style="display:flex;gap:4px;"><button class="btn-sm primary" onclick="printAllGases()">🖨️</button></td></tr>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 

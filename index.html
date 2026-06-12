@@ -1595,10 +1595,18 @@ body[data-accent="teal"] {
 }
 
 @media(max-width:768px){
-  .data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .data-table { min-width: 600px; }
+  .data-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; width:100%; display:block; }
+  .data-table { min-width: 650px; }
+  .data-table th, .data-table td { padding: 10px 10px; font-size: 12px; }
+  .card-body { padding: 0 !important; }
 }
 
+@media(max-width:480px){
+  .data-table th:nth-child(4),
+  .data-table td:nth-child(4),
+  .data-table th:nth-child(5),
+  .data-table td:nth-child(5) { display: none; }
+}
 .data-table th {
   padding: 13px 16px;
   font-size: 12px;
@@ -3580,7 +3588,7 @@ function loadERGGuidesFiles(input) {
   <div class="section-header"><div class="section-divider"></div><div><h2>🏭 الشركات</h2><p>قائمة شاملة بجميع الشركات في المنطقة الصناعية</p></div></div>
 
 <div class="card" style="margin-bottom:16px;"><div class="card-body" style="padding:14px 16px;">
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:100%;">
       <span style="font-size:13px;font-weight:700;color:var(--text-secondary);white-space:nowrap;">🏭 الشركة:</span>
       <div style="position:relative;flex:1;min-width:200px;">
         <select id="companies-select-filter" onchange="filterCompaniesBySelect(this.value)" style="width:100%;background:var(--dark-panel);border:1px solid var(--dark-border);border-radius:10px;padding:9px 36px 9px 16px;font-size:13px;font-weight:600;color:var(--text-primary);font-family:inherit;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;">
@@ -3605,10 +3613,12 @@ function loadERGGuidesFiles(input) {
 <div id="companies-stats" style="display:flex;gap:16px;margin-bottom:12px;flex-wrap:wrap;"></div>
   <div class="card">
     <div class="card-body" style="padding:0;">
+      <div class="data-table-wrap">
       <table class="data-table">
         <thead><tr><th>#</th><th>اسم الشركة</th><th>النشاط</th><th>الزون / القطعة</th><th>العمال</th><th>مستوى الخطر</th><th>خطة الإخلاء</th><th>إجراءات</th></tr></thead>
         <tbody id="companies-tbody"><tr><td colspan="8" class="table-empty">لا توجد شركات — اضغط "+ إضافة شركة" للبدء</td></tr></tbody>
       </table>
+      </div>
     </div>
   </div>
 </div>
